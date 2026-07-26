@@ -120,7 +120,7 @@
         }
         .catalog-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.8rem;
             margin-top: 0.5rem;
         }
@@ -250,12 +250,28 @@
             font-weight: 600;
             font-size: 1.1rem;
             color: #0f172a;
-            margin: 0.2rem 0 0.1rem 0;
+            margin: 0.2rem 0 0.05rem 0;
         }
         .filament-brand {
             font-size: 0.8rem;
             color: #64748b;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.1rem;
+        }
+        /* KRĀSA — pilns garums, brīvi plūstošs */
+        .filament-color {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e293b;
+            background: #f1f5f9;
+            padding: 0.15rem 0.9rem;
+            border-radius: 30px;
+            display: inline-block;
+            max-width: 100%;
+            word-break: break-word;
+            white-space: normal;
+            line-height: 1.4;
+            margin: 0.1rem 0.3rem 0.1rem 0.3rem;
+            border: 1px solid #e2e8f0;
         }
         .filament-type {
             display: inline-block;
@@ -266,11 +282,11 @@
             padding: 0.2rem 0.9rem;
             border-radius: 40px;
             letter-spacing: 0.3px;
-            margin-top: 0.2rem;
+            margin-top: 0.15rem;
             border: 1px solid #dbeafe;
         }
         .filament-price {
-            margin-top: 0.5rem;
+            margin-top: 0.4rem;
             font-weight: 600;
             color: #0b2b4a;
             background: #f1f5f9;
@@ -472,14 +488,15 @@
 
 <script>
     (function() {
-        // ---------- DATI ar vairākiem foto URL (simulēti) ----------
+        // ---------- DATI ar vairākiem foto URL un KRĀSU (garš teksts) ----------
         const filamentData = [
             { 
                 id: 1, 
-                name: 'Premium PLA', 
-                brand: 'FilamentPro', 
+                name: 'PLA Silk', 
+                brand: 'Eryone', 
                 type: 'PLA', 
-                price: '€19.99',
+                price: '€8,50',
+                color: 'Gold',
                 photos: [
                     'https://picsum.photos/seed/pla1/600/600',
                     'https://picsum.photos/seed/pla2/600/600',
@@ -488,10 +505,11 @@
             },
             { 
                 id: 2, 
-                name: 'Matte PLA', 
-                brand: 'PrintMe', 
+                name: 'PLA Matte', 
+                brand: 'Eryone', 
                 type: 'PLA', 
-                price: '€21.50',
+                price: '€8,00',
+                color: 'Granite(Dzeltens+Violets)',
                 photos: [
                     'https://picsum.photos/seed/matte1/600/600',
                     'https://picsum.photos/seed/matte2/600/600'
@@ -499,10 +517,11 @@
             },
             { 
                 id: 3, 
-                name: 'Silk PLA', 
-                brand: '3DArt', 
-                type: 'PLA', 
-                price: '€24.90',
+                name: 'TPU', 
+                brand: 'Eryone', 
+                type: 'TPU', 
+                price: '€15,00',
+                color: 'Grey',
                 photos: [
                     'https://picsum.photos/seed/silk1/600/600',
                     'https://picsum.photos/seed/silk2/600/600',
@@ -512,10 +531,11 @@
             },
             { 
                 id: 4, 
-                name: 'PETG Crystal', 
-                brand: 'ClearPrint', 
+                name: 'PETG', 
+                brand: 'Eryone', 
                 type: 'PETG', 
-                price: '€26.00',
+                price: '€8,00',
+                color: 'White',
                 photos: [
                     'https://picsum.photos/seed/petg1/600/600',
                     'https://picsum.photos/seed/petg2/600/600'
@@ -527,6 +547,7 @@
                 brand: 'CarbonX', 
                 type: 'PETG', 
                 price: '€29.95',
+                color: 'Carbon Fiber Dark Grey with micro texture',
                 photos: [
                     'https://picsum.photos/seed/carbon1/600/600',
                     'https://picsum.photos/seed/carbon2/600/600',
@@ -539,6 +560,7 @@
                 brand: 'PureFil', 
                 type: 'PETG', 
                 price: '€22.30',
+                color: 'Opaque Arctic White (extra white)',
                 photos: [
                     'https://picsum.photos/seed/white1/600/600',
                     'https://picsum.photos/seed/white2/600/600'
@@ -550,6 +572,7 @@
                 brand: 'FlexiFil', 
                 type: 'TPU', 
                 price: '€34.50',
+                color: 'Neon Green / High Visibility Yellow-Green',
                 photos: [
                     'https://picsum.photos/seed/tpu1/600/600',
                     'https://picsum.photos/seed/tpu2/600/600',
@@ -562,6 +585,7 @@
                 brand: 'Rubber3D', 
                 type: 'TPU', 
                 price: '€37.20',
+                color: 'Jet Black with slight satin sheen',
                 photos: [
                     'https://picsum.photos/seed/soft1/600/600',
                     'https://picsum.photos/seed/soft2/600/600'
@@ -573,6 +597,7 @@
                 brand: 'SpeedFlex', 
                 type: 'TPU', 
                 price: '€39.90',
+                color: 'Fire Engine Red / RAL 3020',
                 photos: [
                     'https://picsum.photos/seed/speed1/600/600',
                     'https://picsum.photos/seed/speed2/600/600',
@@ -586,6 +611,7 @@
                 brand: 'WoodFil', 
                 type: 'PLA', 
                 price: '€27.80',
+                color: 'Natural Wood / Birch tone with fine wood fibers',
                 photos: [
                     'https://picsum.photos/seed/wood1/600/600',
                     'https://picsum.photos/seed/wood2/600/600'
@@ -694,7 +720,6 @@
 
             // Klikšķis uz galerijas atver fullscreen
             gallery.addEventListener('click', (e) => {
-                // Neaktivizēt, ja klikšķis uz navigācijas pogas
                 if (e.target.closest('.gallery-nav')) return;
                 openFullscreen(photos, currentIndex);
             });
@@ -716,7 +741,7 @@
             return updateGallery;
         }
 
-        // ---------- IZVEIDOT KARTĪTI AR GALERIJU ----------
+        // ---------- IZVEIDOT KARTĪTI AR GALERIJU UN KRĀSU ----------
         function createCard(item) {
             const card = document.createElement('div');
             card.className = 'filament-card';
@@ -743,6 +768,9 @@
                 });
             }
 
+            // Krāsa — izmantojam .filament-color, kas lauž garus vārdus
+            const colorHtml = item.color ? `<div class="filament-color">🎨 ${item.color}</div>` : '';
+
             const galleryHTML = `
                 <div class="photo-gallery">
                     <div class="photo-container" style="transform: translateX(0%);">
@@ -760,6 +788,7 @@
                 ${galleryHTML}
                 <div class="filament-name">${item.name}</div>
                 <div class="filament-brand">${item.brand}</div>
+                ${colorHtml}
                 <div class="filament-type">${item.type}</div>
                 <div class="filament-price">${item.price}</div>
             `;
@@ -768,11 +797,8 @@
             if (photos.length > 0) {
                 setupGallery(card, photos);
             } else {
-                // Ja nav foto, tomēr pievienojam klikšķi, bet neko neatveram
                 const gallery = card.querySelector('.photo-gallery');
-                gallery.addEventListener('click', () => {
-                    // var parādīt paziņojumu, bet šeit neko
-                });
+                gallery.addEventListener('click', () => {});
             }
 
             return card;
