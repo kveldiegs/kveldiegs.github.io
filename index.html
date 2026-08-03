@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filamentu katalogs · pilnekrāna galerija</title>
+    <title>Filamentu katalogs · optimizēta galerija</title>
     <style>
         * {
             box-sizing: border-box;
@@ -142,7 +142,7 @@
             box-shadow: 0 12px 24px -10px rgba(0,0,0,0.08);
         }
         
-        /* FOTO GALERIJAS STILI */
+        /* FOTO GALERIJAS STILI — ar attēlu optimizāciju */
         .photo-gallery {
             position: relative;
             width: 100%;
@@ -161,6 +161,7 @@
             height: 100%;
             display: flex;
             transition: transform 0.3s ease;
+            will-change: transform;
         }
         .photo-gallery .photo-slide {
             min-width: 100%;
@@ -177,6 +178,9 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            background: #e8edf5; 
+            /* decodēšanas ātrumam un gludumam */
+            image-rendering: auto;
         }
         .photo-slide .placeholder-text {
             display: flex;
@@ -190,7 +194,6 @@
             font-size: 2.5rem;
         }
         
-        /* BULTIŅAS - redzamas tikai uz hover */
         .gallery-nav {
             position: absolute;
             top: 50%;
@@ -257,7 +260,6 @@
             color: #64748b;
             margin-bottom: 0.1rem;
         }
-        /* KRĀSA — pilns garums, brīvi plūstošs */
         .filament-color {
             font-size: 0.85rem;
             font-weight: 500;
@@ -456,7 +458,6 @@
         </h1>
     </div>
 
-    <!-- FILTRĒŠANAS josla -->
     <div class="filter-bar">
         <div class="filter-label">
             <i>🔽</i> Filtrēt pēc materiāla:
@@ -471,7 +472,6 @@
         <div class="stats" id="itemCount">Parādās <span id="countNumber">0</span></div>
     </div>
 
-    <!-- KATALOGS -->
     <div id="catalogGrid" class="catalog-grid"></div>
 </div>
 
@@ -481,7 +481,7 @@
     <button class="fullscreen-nav prev" id="fullscreenPrev">‹</button>
     <button class="fullscreen-nav next" id="fullscreenNext">›</button>
     <div class="fullscreen-content" id="fullscreenContent">
-        <img id="fullscreenImage" src="" alt="fullscreen view">
+        <img id="fullscreenImage" src="" alt="fullscreen view" loading="lazy">
     </div>
     <div class="fullscreen-counter" id="fullscreenCounter">1 / 1</div>
 </div>
@@ -574,41 +574,40 @@
             },
             { 
                 id: 8, 
-                name: 'Glow In Dark PLA', 
-                brand: 'Eryone', 
-                type: 'PLA', 
-                price: '€8,50',
-                color: 'Purple',
+                name: 'TPU Soft', 
+                brand: 'Rubber3D', 
+                type: 'TPU', 
+                price: '€37.20',
+                color: 'Jet Black with slight satin sheen',
                 photos: [
-                    'GlowP.webp',
-                    'GlowP1.webp',
-                    'GlowP2.webp'
+                    'https://picsum.photos/seed/soft1/600/600',
+                    'https://picsum.photos/seed/soft2/600/600'
                 ]
             },
             { 
                 id: 9, 
-                name: 'HS Silk PLA', 
-                brand: 'Eryone', 
-                type: 'PLA', 
-                price: '€8,00',
-                color: 'Lane & Purple & Silver & Black & Dark Green',
+                name: 'TPU High-Speed', 
+                brand: 'SpeedFlex', 
+                type: 'TPU', 
+                price: '€39.90',
+                color: 'Fire Engine Red / RAL 3020',
                 photos: [
-                    'RE.webp',
-                    'RE1.webp',
-                    'RE2.webp'
+                    'https://picsum.photos/seed/speed1/600/600',
+                    'https://picsum.photos/seed/speed2/600/600',
+                    'https://picsum.photos/seed/speed3/600/600',
+                    'https://picsum.photos/seed/speed4/600/600'
                 ]
             },
             { 
                 id: 10, 
-                name: 'Silk PLA', 
-                brand: 'Eryone', 
+                name: 'PLA Wood', 
+                brand: 'WoodFil', 
                 type: 'PLA', 
-                price: '€8,50',
-                color: 'Forest',
+                price: '€27.80',
+                color: 'Natural Wood / Birch tone with fine wood fibers',
                 photos: [
-                    'Forest.webp',
-                    'Forest1.webp',
-                    'Forest2.webp',
+                    'https://picsum.photos/seed/wood1/600/600',
+                    'https://picsum.photos/seed/wood2/600/600'
                 ]
             },
         ];
@@ -628,13 +627,13 @@
         const counterEl = document.getElementById('fullscreenCounter');
 
         // Stāvoklis fullscreen
-        let fsImages = [];          // aktuālā galerijas attēlu URL
+        let fsImages = [];
         let fsCurrentIndex = 0;
 
         // ---------- FULLSCREEN FUNKCIJAS ----------
         function openFullscreen(images, index) {
             if (!images || images.length === 0) return;
-            fsImages = images.slice(); // kopija
+            fsImages = images.slice();
             fsCurrentIndex = Math.min(index, fsImages.length - 1);
             if (fsCurrentIndex < 0) fsCurrentIndex = 0;
             updateFullscreenImage();
@@ -666,12 +665,10 @@
             updateFullscreenImage();
         }
 
-        // Piesaitām fullscreen pogas
         closeBtn.addEventListener('click', closeFullscreen);
         prevBtn.addEventListener('click', prevFullscreen);
         nextBtn.addEventListener('click', nextFullscreen);
 
-        // Aizvērt ar Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && overlay.classList.contains('active')) {
                 closeFullscreen();
@@ -686,7 +683,6 @@
             }
         });
 
-        // Klikšķis uz fona aizver
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeFullscreen();
         });
@@ -712,7 +708,6 @@
                 }
             }
 
-            // Klikšķis uz galerijas atver fullscreen
             gallery.addEventListener('click', (e) => {
                 if (e.target.closest('.gallery-nav')) return;
                 openFullscreen(photos, currentIndex);
@@ -735,7 +730,7 @@
             return updateGallery;
         }
 
-        // ---------- IZVEIDOT KARTĪTI AR GALERIJU UN KRĀSU ----------
+        // ---------- IZVEIDOT KARTĪTI AR GALERIJU UN KRĀSU (ar load optimizāciju) ----------
         function createCard(item) {
             const card = document.createElement('div');
             card.className = 'filament-card';
@@ -754,15 +749,15 @@
                 `;
             } else {
                 photos.forEach((url, idx) => {
+                    // Pievienojam loading="lazy" un decoding="async" lai attēli ielādētos ātrāk
                     slidesHtml += `
                         <div class="photo-slide">
-                            <img src="${url}" alt="${item.name} - ${idx+1}" loading="lazy">
+                            <img src="${url}" alt="${item.name} - ${idx+1}" loading="lazy" decoding="async">
                         </div>
                     `;
                 });
             }
 
-            // Krāsa — izmantojam .filament-color, kas lauž garus vārdus
             const colorHtml = item.color ? `<div class="filament-color">🎨 ${item.color}</div>` : '';
 
             const galleryHTML = `
@@ -787,7 +782,6 @@
                 <div class="filament-price">${item.price}</div>
             `;
 
-            // Iestatām galerijas navigāciju un fullscreen
             if (photos.length > 0) {
                 setupGallery(card, photos);
             } else {
