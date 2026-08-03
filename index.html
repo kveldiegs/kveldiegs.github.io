@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filamentu katalogs · momentānā galerija</title>
+    <title>Filamentu katalogs · pilnekrāna galerija</title>
     <style>
         * {
             box-sizing: border-box;
@@ -142,6 +142,7 @@
             box-shadow: 0 12px 24px -10px rgba(0,0,0,0.08);
         }
         
+        /* FOTO GALERIJAS STILI */
         .photo-gallery {
             position: relative;
             width: 100%;
@@ -159,8 +160,7 @@
             width: 100%;
             height: 100%;
             display: flex;
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            will-change: transform;
+            transition: transform 0.3s ease;
         }
         .photo-gallery .photo-slide {
             min-width: 100%;
@@ -177,10 +177,6 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            background: #e8edf5;
-            image-rendering: auto;
-            /* Prevent layout shift */
-            aspect-ratio: 1/1;
         }
         .photo-slide .placeholder-text {
             display: flex;
@@ -194,6 +190,7 @@
             font-size: 2.5rem;
         }
         
+        /* BULTIŅAS - redzamas tikai uz hover */
         .gallery-nav {
             position: absolute;
             top: 50%;
@@ -260,6 +257,7 @@
             color: #64748b;
             margin-bottom: 0.1rem;
         }
+        /* KRĀSA — pilns garums, brīvi plūstošs */
         .filament-color {
             font-size: 0.85rem;
             font-weight: 500;
@@ -311,6 +309,7 @@
             margin-bottom: 0.5rem;
         }
 
+        /* FULLSCREEN OVERLAY */
         .fullscreen-overlay {
             position: fixed;
             top: 0;
@@ -457,6 +456,7 @@
         </h1>
     </div>
 
+    <!-- FILTRĒŠANAS josla -->
     <div class="filter-bar">
         <div class="filter-label">
             <i>🔽</i> Filtrēt pēc materiāla:
@@ -471,9 +471,11 @@
         <div class="stats" id="itemCount">Parādās <span id="countNumber">0</span></div>
     </div>
 
+    <!-- KATALOGS -->
     <div id="catalogGrid" class="catalog-grid"></div>
 </div>
 
+<!-- FULLSCREEN OVERLAY -->
 <div id="fullscreenOverlay" class="fullscreen-overlay">
     <button class="fullscreen-close" id="fullscreenClose">✕</button>
     <button class="fullscreen-nav prev" id="fullscreenPrev">‹</button>
@@ -486,7 +488,7 @@
 
 <script>
     (function() {
-        // ---------- DATI ----------
+        // ---------- DATI ar vairākiem foto URL un KRĀSU (garš teksts) ----------
         const filamentData = [
             { 
                 id: 1, 
@@ -572,40 +574,41 @@
             },
             { 
                 id: 8, 
-                name: 'TPU Soft', 
-                brand: 'Rubber3D', 
-                type: 'TPU', 
-                price: '€37.20',
-                color: 'Jet Black with slight satin sheen',
+                name: 'Glow In Dark PLA', 
+                brand: 'Eryone', 
+                type: 'PLA', 
+                price: '€8,50',
+                color: 'Purple',
                 photos: [
-                    'https://picsum.photos/seed/soft1/600/600',
-                    'https://picsum.photos/seed/soft2/600/600'
+                    'GlowP.webp',
+                    'GlowP1.webp',
+                    'GlowP2.webp'
                 ]
             },
             { 
                 id: 9, 
-                name: 'TPU High-Speed', 
-                brand: 'SpeedFlex', 
-                type: 'TPU', 
-                price: '€39.90',
-                color: 'Fire Engine Red / RAL 3020',
+                name: 'HS Silk PLA', 
+                brand: 'Eryone', 
+                type: 'PLA', 
+                price: '€8,00',
+                color: 'Lane & Purple & Silver & Black & Dark Green',
                 photos: [
-                    'https://picsum.photos/seed/speed1/600/600',
-                    'https://picsum.photos/seed/speed2/600/600',
-                    'https://picsum.photos/seed/speed3/600/600',
-                    'https://picsum.photos/seed/speed4/600/600'
+                    'RE.webp',
+                    'RE1.webp',
+                    'RE2.webp'
                 ]
             },
             { 
                 id: 10, 
-                name: 'PLA Wood', 
-                brand: 'WoodFil', 
+                name: 'Silk PLA', 
+                brand: 'Eryone', 
                 type: 'PLA', 
-                price: '€27.80',
-                color: 'Natural Wood / Birch tone with fine wood fibers',
+                price: '€8,50',
+                color: 'Forest',
                 photos: [
-                    'https://picsum.photos/seed/wood1/600/600',
-                    'https://picsum.photos/seed/wood2/600/600'
+                    'Forest.webp',
+                    'Forest1.webp',
+                    'Forest2.webp',
                 ]
             },
         ];
@@ -624,6 +627,7 @@
         const nextBtn = document.getElementById('fullscreenNext');
         const counterEl = document.getElementById('fullscreenCounter');
 
+        // Stāvoklis fullscreen
         let fsImages = [];
         let fsCurrentIndex = 0;
 
@@ -684,33 +688,7 @@
             if (e.target === overlay) closeFullscreen();
         });
 
-        // ---------- INSTANT IMAGE LOADING: PRELOAD ALL IMAGES ----------
-        function preloadImages(imageUrls) {
-            // Use a Set to avoid duplicate preloads
-            const uniqueUrls = [...new Set(imageUrls)];
-            uniqueUrls.forEach(url => {
-                // Skip if already preloaded (check cache via browser's built-in cache)
-                const img = new Image();
-                img.src = url;
-                // Setting decoding to sync ensures the image is fully decoded before use
-                // but we want async for background preloading
-                img.decoding = 'async';
-                // Add to browser's memory cache
-                img.loading = 'eager';
-            });
-        }
-
-        // Collect all photo URLs from all items
-        const allPhotoUrls = [];
-        filamentData.forEach(item => {
-            if (item.photos && item.photos.length) {
-                item.photos.forEach(url => allPhotoUrls.push(url));
-            }
-        });
-        // Preload everything in the background
-        preloadImages(allPhotoUrls);
-
-        // ---------- GALERIJAS NAVIGĀCIJA ----------
+        // ---------- GALERIJAS NAVIGĀCIJA (kartiņās) ----------
         function setupGallery(card, photos) {
             const gallery = card.querySelector('.photo-gallery');
             const container = gallery.querySelector('.photo-container');
@@ -753,7 +731,7 @@
             return updateGallery;
         }
 
-        // ---------- IZVEIDOT KARTĪTI ----------
+        // ---------- IZVEIDOT KARTĪTI AR GALERIJU UN KRĀSU ----------
         function createCard(item) {
             const card = document.createElement('div');
             card.className = 'filament-card';
@@ -771,12 +749,11 @@
                     </div>
                 `;
             } else {
+                // Noņemam loading="lazy" un pievienojam fetchpriority="high", lai bildes lādētos momentāli
                 photos.forEach((url, idx) => {
-                    // All images are already preloaded, so we can use eager loading
-                    // for instant display when the slide becomes visible
                     slidesHtml += `
                         <div class="photo-slide">
-                            <img src="${url}" alt="${item.name} - ${idx+1}" loading="eager" decoding="sync">
+                            <img src="${url}" alt="${item.name} - ${idx+1}" fetchpriority="high">
                         </div>
                     `;
                 });
