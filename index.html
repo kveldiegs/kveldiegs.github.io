@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filamentu katalogs · optimizēta galerija</title>
+    <title>Filamentu katalogs · momentānā galerija</title>
     <style>
         * {
             box-sizing: border-box;
@@ -142,7 +142,6 @@
             box-shadow: 0 12px 24px -10px rgba(0,0,0,0.08);
         }
         
-        /* FOTO GALERIJAS STILI — ar attēlu optimizāciju */
         .photo-gallery {
             position: relative;
             width: 100%;
@@ -160,7 +159,7 @@
             width: 100%;
             height: 100%;
             display: flex;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             will-change: transform;
         }
         .photo-gallery .photo-slide {
@@ -178,9 +177,10 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            background: #e8edf5; 
-            /* decodēšanas ātrumam un gludumam */
+            background: #e8edf5;
             image-rendering: auto;
+            /* Prevent layout shift */
+            aspect-ratio: 1/1;
         }
         .photo-slide .placeholder-text {
             display: flex;
@@ -311,7 +311,6 @@
             margin-bottom: 0.5rem;
         }
 
-        /* FULLSCREEN OVERLAY */
         .fullscreen-overlay {
             position: fixed;
             top: 0;
@@ -475,20 +474,19 @@
     <div id="catalogGrid" class="catalog-grid"></div>
 </div>
 
-<!-- FULLSCREEN OVERLAY -->
 <div id="fullscreenOverlay" class="fullscreen-overlay">
     <button class="fullscreen-close" id="fullscreenClose">✕</button>
     <button class="fullscreen-nav prev" id="fullscreenPrev">‹</button>
     <button class="fullscreen-nav next" id="fullscreenNext">›</button>
     <div class="fullscreen-content" id="fullscreenContent">
-        <img id="fullscreenImage" src="" alt="fullscreen view" loading="lazy">
+        <img id="fullscreenImage" src="" alt="fullscreen view">
     </div>
     <div class="fullscreen-counter" id="fullscreenCounter">1 / 1</div>
 </div>
 
 <script>
     (function() {
-        // ---------- DATI ar vairākiem foto URL un KRĀSU (garš teksts) ----------
+        // ---------- DATI ----------
         const filamentData = [
             { 
                 id: 1, 
@@ -626,7 +624,6 @@
         const nextBtn = document.getElementById('fullscreenNext');
         const counterEl = document.getElementById('fullscreenCounter');
 
-        // Stāvoklis fullscreen
         let fsImages = [];
         let fsCurrentIndex = 0;
 
@@ -687,7 +684,33 @@
             if (e.target === overlay) closeFullscreen();
         });
 
-        // ---------- GALERIJAS NAVIGĀCIJA (kartiņās) ----------
+        // ---------- INSTANT IMAGE LOADING: PRELOAD ALL IMAGES ----------
+        function preloadImages(imageUrls) {
+            // Use a Set to avoid duplicate preloads
+            const uniqueUrls = [...new Set(imageUrls)];
+            uniqueUrls.forEach(url => {
+                // Skip if already preloaded (check cache via browser's built-in cache)
+                const img = new Image();
+                img.src = url;
+                // Setting decoding to sync ensures the image is fully decoded before use
+                // but we want async for background preloading
+                img.decoding = 'async';
+                // Add to browser's memory cache
+                img.loading = 'eager';
+            });
+        }
+
+        // Collect all photo URLs from all items
+        const allPhotoUrls = [];
+        filamentData.forEach(item => {
+            if (item.photos && item.photos.length) {
+                item.photos.forEach(url => allPhotoUrls.push(url));
+            }
+        });
+        // Preload everything in the background
+        preloadImages(allPhotoUrls);
+
+        // ---------- GALERIJAS NAVIGĀCIJA ----------
         function setupGallery(card, photos) {
             const gallery = card.querySelector('.photo-gallery');
             const container = gallery.querySelector('.photo-container');
@@ -730,7 +753,7 @@
             return updateGallery;
         }
 
-        // ---------- IZVEIDOT KARTĪTI AR GALERIJU UN KRĀSU (ar load optimizāciju) ----------
+        // ---------- IZVEIDOT KARTĪTI ----------
         function createCard(item) {
             const card = document.createElement('div');
             card.className = 'filament-card';
@@ -749,10 +772,11 @@
                 `;
             } else {
                 photos.forEach((url, idx) => {
-                    // Pievienojam loading="lazy" un decoding="async" lai attēli ielādētos ātrāk
+                    // All images are already preloaded, so we can use eager loading
+                    // for instant display when the slide becomes visible
                     slidesHtml += `
                         <div class="photo-slide">
-                            <img src="${url}" alt="${item.name} - ${idx+1}" loading="lazy" decoding="async">
+                            <img src="${url}" alt="${item.name} - ${idx+1}" loading="eager" decoding="sync">
                         </div>
                     `;
                 });
