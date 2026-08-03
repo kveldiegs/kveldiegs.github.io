@@ -155,14 +155,17 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            touch-action: pan-y; /* atļauj vertikālu ritināšanu, bet horizontālo kontrolējam paši */
+            touch-action: none;
         }
         .photo-gallery .photo-container {
             width: 100%;
             height: 100%;
             display: flex;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             will-change: transform;
+        }
+        .photo-gallery .photo-container.no-transition {
+            transition: none !important;
         }
         .photo-gallery .photo-slide {
             min-width: 100%;
@@ -726,69 +729,114 @@
             const total = photos.length;
             let touchStartX = 0;
             let touchStartY = 0;
-            let isSwiping = false;
+            let isDragging = false;
+            let startTransform = 0;
+            let currentTranslate = 0;
 
-            function updateGallery(index) {
+            function getContainerWidth() {
+                return container.offsetWidth;
+            }
+
+            function updateGallery(index, animate = true) {
                 if (index < 0) index = total - 1;
                 if (index >= total) index = 0;
                 currentIndex = index;
-                container.style.transform = `translateX(-${currentIndex * 100}%)`;
+                if (!animate) {
+                    container.classList.add('no-transition');
+                } else {
+                    container.classList.remove('no-transition');
+                }
+                const translateX = -currentIndex * 100;
+                container.style.transform = `translateX(${translateX}%)`;
+                currentTranslate = translateX;
                 if (counter) {
                     counter.textContent = `${currentIndex + 1} / ${total}`;
                 }
+                // Force reflow for no-transition
+                if (!animate) {
+                    void container.offsetHeight;
+                    container.classList.remove('no-transition');
+                }
             }
 
-            // Touch events galerijai
+            // Touch events ar reāllaika vilkšanu
             gallery.addEventListener('touchstart', (e) => {
+                if (total <= 1) return;
                 const touch = e.changedTouches[0];
                 touchStartX = touch.screenX;
                 touchStartY = touch.screenY;
-                isSwiping = false;
+                isDragging = true;
+                startTransform = -currentIndex * 100;
+                container.classList.add('no-transition');
             }, { passive: true });
 
             gallery.addEventListener('touchmove', (e) => {
-                if (total <= 1) return;
+                if (!isDragging || total <= 1) return;
                 const touch = e.changedTouches[0];
                 const dx = touch.screenX - touchStartX;
                 const dy = touch.screenY - touchStartY;
-                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
-                    isSwiping = true;
-                    e.preventDefault(); // bloķē lapas ritināšanu
-                    // reāllaika vilkšana (pārāk sarežģīti bez papildu koda, tāpēc tikai beigās)
+                
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5) {
+                    e.preventDefault();
+                    const containerWidth = getContainerWidth();
+                    const percentMoved = (dx / containerWidth) * 100;
+                    let newTranslate = startTransform + percentMoved;
+                    
+                    // Ierobežojam, lai nerādās tukša vieta
+                    const minTranslate = -(total - 1) * 100 - 20;
+                    const maxTranslate = 20;
+                    newTranslate = Math.max(minTranslate, Math.min(maxTranslate, newTranslate));
+                    
+                    container.style.transform = `translateX(${newTranslate}%)`;
+                    currentTranslate = newTranslate;
                 }
             }, { passive: false });
 
             gallery.addEventListener('touchend', (e) => {
-                if (total <= 1) return;
-                const dx = e.changedTouches[0].screenX - touchStartX;
-                const dy = e.changedTouches[0].screenY - touchStartY;
-                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
-                    if (dx < 0) updateGallery(currentIndex + 1);
-                    else updateGallery(currentIndex - 1);
-                    e.preventDefault();
+                if (!isDragging || total <= 1) {
+                    isDragging = false;
+                    return;
                 }
-            }, { passive: false });
+                isDragging = false;
+                container.classList.remove('no-transition');
+                
+                const dx = e.changedTouches[0].screenX - touchStartX;
+                const containerWidth = getContainerWidth();
+                const percentMoved = (dx / containerWidth) * 100;
+                
+                // Ja pārvilkums > 15% no platuma, mainām slaidu
+                if (Math.abs(percentMoved) > 15) {
+                    if (percentMoved < 0) {
+                        updateGallery(currentIndex + 1, true);
+                    } else {
+                        updateGallery(currentIndex - 1, true);
+                    }
+                } else {
+                    // Atgriežamies pie esošā slaida
+                    updateGallery(currentIndex, true);
+                }
+            }, { passive: true });
 
             gallery.addEventListener('click', (e) => {
                 if (e.target.closest('.gallery-nav')) return;
-                if (isSwiping) return;
+                if (isDragging) return;
                 openFullscreen(photos, currentIndex);
             });
 
             if (prevBtn) {
                 prevBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    updateGallery(currentIndex - 1);
+                    updateGallery(currentIndex - 1, true);
                 });
             }
             if (nextBtn) {
                 nextBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    updateGallery(currentIndex + 1);
+                    updateGallery(currentIndex + 1, true);
                 });
             }
 
-            updateGallery(0);
+            updateGallery(0, false);
             return updateGallery;
         }
 
